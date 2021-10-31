@@ -1,0 +1,121 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <malloc.h>
+#include <math.h>
+#include <TXlib.h>
+
+#define INIT_SIZE 10
+#define MULTIPLIER 2
+#define STACK_OVERFLOW  -100
+#define STACK_UNDERFLOW -101
+#define OUT_OF_MEMORY   -102
+
+typedef int T;
+typedef double datasize;
+
+typedef struct Stack_tag {
+    datasize *data;
+    size_t size;
+    size_t top;
+} stack;
+
+
+stack* StackCtor();
+void StackDctor(stack **stk); //удаление стека
+//void StackCtor(stack* stk, int capacity); //создание стека
+void push(stack *stk, double value); //добавить элемент в стек
+datasize pop(stack *stk); //убрать элемент из стека
+datasize peek(const stack *stk);//вернуть верхний элемент стека, не удаляя его
+void StackResize(stack *stk);
+void resize(stack *stk);
+
+
+int main()
+{
+    stack *stk = StackCtor();
+
+    for(int i = 0; i < 51; i++)
+    {
+        push(stk, i);
+        printf("%lf\n", peek(stk));
+    }
+
+    for(int i = 0; i < 51; i++)
+    {
+        printf("%lf\n", pop(stk));
+    }
+
+    StackDctor(&stk);
+
+    return 0;
+}
+
+stack* StackCtor()
+{
+    Stack_tag *stk = NULL;
+    stk =(stack*) malloc(sizeof(datasize));
+    if (stk == NULL) {
+        exit(OUT_OF_MEMORY);
+    }
+    stk -> size = INIT_SIZE;
+    stk -> data =(datasize*) malloc(stk ->size * sizeof(datasize));
+    if (stk -> data == NULL) {
+        free(stk);
+        exit(OUT_OF_MEMORY);
+    }
+    stk -> top = 0;
+
+    return stk;
+}
+
+
+void push(stack *stk, double value)
+{
+    if(stk -> top >= stk -> size)
+        StackResize(stk);
+    stk -> data[stk -> top] = value;
+    stk -> top++;
+}
+
+
+void StackResize(Stack_tag *stk)
+{
+        (stk -> size) *= MULTIPLIER;
+        stk -> data = (datasize*) realloc(stk -> data, sizeof(datasize));
+
+        if (stk -> data == NULL)
+            exit(STACK_OVERFLOW);
+}
+
+datasize pop(stack *stk)
+{
+    if(stk -> top == 0)
+        exit(STACK_UNDERFLOW);
+
+    stk -> top--;
+    return stk -> data[stk -> top];
+
+}
+
+datasize peek(const stack *stk) {
+    if (stk -> top <= 0) {
+        exit(STACK_UNDERFLOW);
+    }
+    return stk -> data[stk -> top - 1];
+}
+
+void resize(stack *stk)
+{
+    stk -> size *= MULTIPLIER;
+    stk -> data = (datasize*) realloc(stk -> data, stk -> size * sizeof(T));
+    if (stk -> data == NULL)
+        exit(STACK_OVERFLOW);
+}
+
+void StackDctor(stack **stk)
+{
+    free((*stk) -> data);
+    free(*stk);
+    *stk = NULL;
+}
